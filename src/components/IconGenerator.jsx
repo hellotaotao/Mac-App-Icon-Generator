@@ -1,10 +1,12 @@
 import { useState, useCallback } from "react";
 import styled from "styled-components";
+import ReactCrop from "react-image-crop";
 import { processImage } from "../utils/imageProcessor";
+import "react-image-crop/dist/ReactCrop.css";
 
 const DropZone = styled.div`
-    width: 400px;
-    height: 300px;
+    width: 600px;
+    height: 400px;
     border: 2px dashed #007aff;
     border-radius: 12px;
     display: flex;
@@ -16,6 +18,7 @@ const DropZone = styled.div`
     transition: all 0.3s ease;
     padding: 20px;
     text-align: center;
+    margin-bottom: 20px;
 
     &:hover {
         border-color: #0051e6;
@@ -44,15 +47,28 @@ const GenerateButton = styled.button`
     }
 `;
 
-const PreviewImage = styled.img`
-    max-width: 200px;
-    max-height: 200px;
-    margin-top: 10px;
-    border-radius: 12px;
+const ImageContainer = styled.div`
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+`;
+
+const Instructions = styled.p`
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
 `;
 
 function IconGenerator() {
     const [image, setImage] = useState(null);
+    const [imageRef, setImageRef] = useState(null);
+    const [crop, setCrop] = useState({
+        unit: "%",
+        width: 100,
+        aspect: 1,
+    });
     const [isProcessing, setIsProcessing] = useState(false);
 
     const handleDrop = useCallback((e) => {
@@ -78,11 +94,45 @@ function IconGenerator() {
         }
     }, []);
 
+    const getCroppedImage = () => {
+        if (!imageRef || !crop) return null;
+
+        const canvas = document.createElement("canvas");
+        const scaleX = imageRef.naturalWidth / imageRef.width;
+        const scaleY = imageRef.naturalHeight / imageRef.height;
+        const pixelRatio = window.devicePixelRatio;
+
+        canvas.width = Math.floor(crop.width * scaleX);
+        canvas.height = Math.floor(crop.height * scaleY);
+
+        const ctx = canvas.getContext("2d");
+        ctx.scale(pixelRatio, pixelRatio);
+        ctx.imageSmoothingQuality = "high";
+
+        const cropX = crop.x * scaleX;
+        const cropY = crop.y * scaleY;
+
+        ctx.drawImage(
+            imageRef,
+            cropX,
+            cropY,
+            crop.width * scaleX,
+            crop.height * scaleY,
+            0,
+            0,
+            crop.width * scaleX,
+            crop.height * scaleY
+        );
+
+        return canvas.toDataURL("image/png");
+    };
+
     const handleGenerate = async () => {
         if (!image || isProcessing) return;
         setIsProcessing(true);
         try {
-            await processImage(image);
+            const croppedImage = getCroppedImage();
+            await processImage(croppedImage || image);
         } catch (error) {
             console.error("Error generating icons:", error);
             alert("Failed to generate icons. Please try again.");
@@ -99,17 +149,39 @@ function IconGenerator() {
                 onChange={handleFileSelect}
                 style={{ display: "none" }}
             />
-            <DropZone
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onClick={() => document.getElementById("fileInput").click()}
-            >
-                {image ? (
-                    <PreviewImage src={image} alt="Preview" />
-                ) : (
-                    <p>Drag and drop or click to upload a 1024x1024 image</p>
-                )}
-            </DropZone>
+            {!image ? (
+                <DropZone
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onClick={() => document.getElementById("fileInput").click()}
+                >
+                    <p>Drag and drop or click to upload an image</p>
+                    <Instructions>
+                        The image will be cropped to a square and scaled to
+                        1024x1024
+                    </Instructions>
+                </DropZone>
+            ) : (
+                <ImageContainer>
+                    <ReactCrop
+                        crop={crop}
+                        onChange={(c) => setCrop(c)}
+                        aspect={1}
+                        circularCrop={false}
+                    >
+                        <img
+                            src={image}
+                            alt="Upload"
+                            style={{ maxWidth: "600px", maxHeight: "400px" }}
+                            onLoad={(e) => setImageRef(e.currentTarget)}
+                        />
+                    </ReactCrop>
+                    <Instructions>
+                        Drag to adjust the crop area. The selection will be used
+                        to generate icons.
+                    </Instructions>
+                </ImageContainer>
+            )}
             <GenerateButton
                 onClick={handleGenerate}
                 disabled={!image || isProcessing}
