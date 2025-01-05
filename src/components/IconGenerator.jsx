@@ -5,8 +5,8 @@ import { processImage } from "../utils/imageProcessor";
 import "react-image-crop/dist/ReactCrop.css";
 
 const DropZone = styled.div`
-    width: 600px;
-    height: 400px;
+    width: 800px;
+    height: 600px;
     border: 2px dashed #007aff;
     border-radius: 12px;
     display: flex;
@@ -59,6 +59,17 @@ const Instructions = styled.p`
     color: #666;
     margin-bottom: 10px;
     font-size: 0.9rem;
+`;
+
+const CropPreviewContainer = styled.div`
+    position: relative;
+    width: 800px;
+    height: 600px;
+
+    .ReactCrop__crop-selection {
+        border-radius: 12.5%; // 1/8 of the selection size
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    }
 `;
 
 function IconGenerator() {
@@ -163,19 +174,24 @@ function IconGenerator() {
                 </DropZone>
             ) : (
                 <ImageContainer>
-                    <ReactCrop
-                        crop={crop}
-                        onChange={(c) => setCrop(c)}
-                        aspect={1}
-                        circularCrop={false}
-                    >
-                        <img
-                            src={image}
-                            alt="Upload"
-                            style={{ maxWidth: "600px", maxHeight: "400px" }}
-                            onLoad={(e) => setImageRef(e.currentTarget)}
-                        />
-                    </ReactCrop>
+                    <CropPreviewContainer>
+                        <ReactCrop
+                            crop={crop}
+                            onChange={(c) => setCrop(c)}
+                            aspect={1}
+                            circularCrop={false}
+                        >
+                            <img
+                                src={image}
+                                alt="Upload"
+                                style={{
+                                    maxWidth: "800px",
+                                    maxHeight: "600px",
+                                }}
+                                onLoad={(e) => setImageRef(e.currentTarget)}
+                            />
+                        </ReactCrop>
+                    </CropPreviewContainer>
                     <Instructions>
                         Drag to adjust the crop area. The selection will be used
                         to generate icons.
