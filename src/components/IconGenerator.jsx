@@ -61,14 +61,49 @@ const Instructions = styled.p`
     font-size: 0.9rem;
 `;
 
+const RadiusControl = styled.div`
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+`;
+
+const RadioGroup = styled.div`
+    display: flex;
+    gap: 12px;
+`;
+
+const RadioLabel = styled.label`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #333;
+
+    input {
+        cursor: pointer;
+    }
+`;
+
 const CropPreviewContainer = styled.div`
     position: relative;
     width: 800px;
     height: 600px;
 
     .ReactCrop__crop-selection {
-        border-radius: 12.5%; // 1/8 of the selection size
         box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    }
+
+    &.radius-8 .ReactCrop__crop-selection {
+        border-radius: 12.5%;
+    }
+
+    &.radius-6 .ReactCrop__crop-selection {
+        border-radius: 16.67%;
+    }
+
+    &.radius-4 .ReactCrop__crop-selection {
+        border-radius: 25%;
     }
 `;
 
@@ -78,9 +113,13 @@ function IconGenerator() {
     const [crop, setCrop] = useState({
         unit: "%",
         width: 100,
+        height: 100,
+        x: 0,
+        y: 0,
         aspect: 1,
     });
     const [isProcessing, setIsProcessing] = useState(false);
+    const [cornerRadius, setCornerRadius] = useState(8);
 
     const handleDrop = useCallback((e) => {
         e.preventDefault();
@@ -138,12 +177,16 @@ function IconGenerator() {
         return canvas.toDataURL("image/png");
     };
 
+    const handleRadiusChange = (value) => {
+        setCornerRadius(value);
+    };
+
     const handleGenerate = async () => {
         if (!image || isProcessing) return;
         setIsProcessing(true);
         try {
             const croppedImage = getCroppedImage();
-            await processImage(croppedImage || image);
+            await processImage(croppedImage || image, cornerRadius);
         } catch (error) {
             console.error("Error generating icons:", error);
             alert("Failed to generate icons. Please try again.");
@@ -174,7 +217,7 @@ function IconGenerator() {
                 </DropZone>
             ) : (
                 <ImageContainer>
-                    <CropPreviewContainer>
+                    <CropPreviewContainer className={`radius-${cornerRadius}`}>
                         <ReactCrop
                             crop={crop}
                             onChange={(c) => setCrop(c)}
@@ -192,6 +235,38 @@ function IconGenerator() {
                             />
                         </ReactCrop>
                     </CropPreviewContainer>
+                    <RadiusControl>
+                        <span>Corner Radius:</span>
+                        <RadioGroup>
+                            <RadioLabel>
+                                <input
+                                    type="radio"
+                                    name="radius"
+                                    checked={cornerRadius === 8}
+                                    onChange={() => handleRadiusChange(8)}
+                                />
+                                1/8
+                            </RadioLabel>
+                            <RadioLabel>
+                                <input
+                                    type="radio"
+                                    name="radius"
+                                    checked={cornerRadius === 6}
+                                    onChange={() => handleRadiusChange(6)}
+                                />
+                                1/6
+                            </RadioLabel>
+                            <RadioLabel>
+                                <input
+                                    type="radio"
+                                    name="radius"
+                                    checked={cornerRadius === 4}
+                                    onChange={() => handleRadiusChange(4)}
+                                />
+                                1/4
+                            </RadioLabel>
+                        </RadioGroup>
+                    </RadiusControl>
                     <Instructions>
                         Drag to adjust the crop area. The selection will be used
                         to generate icons.

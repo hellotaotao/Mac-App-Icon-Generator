@@ -3,7 +3,7 @@ import { saveAs } from "file-saver";
 
 const ICON_SIZES = [16, 32, 128, 256, 512, 1024];
 
-export async function processImage(imageData) {
+export async function processImage(imageData, cornerRadius = 8) {
     const zip = new JSZip();
 
     // Create a canvas element
@@ -30,7 +30,7 @@ export async function processImage(imageData) {
 
         // Draw rounded rectangle
         ctx.beginPath();
-        const radius = size / 8; // Corner radius is 1/8 of the icon size
+        const radius = size / cornerRadius; // Corner radius is now dynamic
         ctx.moveTo(size, size - radius);
         ctx.quadraticCurveTo(size, size, size - radius, size);
         ctx.lineTo(radius, size);
