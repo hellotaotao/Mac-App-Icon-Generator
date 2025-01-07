@@ -90,8 +90,61 @@ const CropPreviewContainer = styled.div`
     width: 800px;
     height: 600px;
 
+    .ReactCrop {
+        position: relative;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
     .ReactCrop__crop-selection {
-        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        border: 1px solid #2563eb;
+    }
+
+    .ReactCrop__crop-area {
+        position: relative;
+    }
+
+    .ReactCrop > img {
+        opacity: 0.5;
+    }
+
+    .ReactCrop__crop-selection > img {
+        opacity: 1;
+    }
+
+    .ReactCrop__drag-handle {
+        width: 12px !important;
+        height: 12px !important;
+        background-color: #fff !important;
+        border: 2px solid #2563eb !important;
+        border-radius: 50% !important;
+        opacity: 1 !important;
+        position: absolute !important;
+    }
+
+    .ReactCrop__drag-handle::before {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: -6px;
+        left: -6px;
+    }
+
+    .ReactCrop__drag-bar {
+        background-color: #2563eb !important;
+        opacity: 0.7 !important;
+    }
+
+    .ReactCrop__drag-bar.ord-n,
+    .ReactCrop__drag-bar.ord-s {
+        height: 2px !important;
+    }
+
+    .ReactCrop__drag-bar.ord-e,
+    .ReactCrop__drag-bar.ord-w {
+        width: 2px !important;
     }
 
     &.radius-8 .ReactCrop__crop-selection {
@@ -223,6 +276,9 @@ function IconGenerator() {
                             onChange={(c) => setCrop(c)}
                             aspect={1}
                             circularCrop={false}
+                            ruleOfThirds
+                            minWidth={100}
+                            minHeight={100}
                         >
                             <img
                                 src={image}
